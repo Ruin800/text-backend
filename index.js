@@ -13,5 +13,10 @@ app.get("/info", (req, res) => {
   res.send("This is a secondary endpoint.");
 });
 
+app.get("/say", (req, res) => {
+  const name = req.query.name || "Guest";
+  res.send(`Hello, ${name}!`);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
