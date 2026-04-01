@@ -4,8 +4,15 @@ const app = express();
 
 // GET endpoint returning text
 app.get("/", (req, res) => {
-  const message = process.env.TEXT_MESSAGE || "Default text response!";
-  res.send(message);
+  const message = process.env.TEXT_MESSAGE || "Hello from Render!";
+
+  // Log details about the request
+  console.log("Request received:");
+  console.log("IP:", req.ip);               // Client IP (may be proxied)
+  console.log("Headers:", req.headers);     // All headers
+  console.log("User-Agent:", req.headers["user-agent"]);
+
+  res.json({ message });
 });
 
 // Another GET endpoint example
