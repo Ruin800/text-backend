@@ -1,47 +1,67 @@
-// index.js
 const express = require("express");
 const crypto = require("crypto");
+const { resource1, veryCoolScript } = require("./resources");
 
 const app = express();
 app.use(express.json());
 
-// Temporary token store (only 1 at a time for simplicity)
-let temporaryToken = null;
+const resources = {
+  resource1,
+  veryCoolScript,
+};
 
-// Helper to generate random token
+const tokenStore = {};
+
 function generateToken() {
-  return crypto.randomBytes(16).toString("hex"); // 32-char token
+  return crypto.randomBytes(16).toString("hex");
 }
 
-// Endpoint: /token
-app.post("/token", (req, res) => {
+app.post("/token/:resourceName", (req, res) => {
   const clientKey = req.body.api_key;
+  const resourceName = req.params.resourceName;
 
   if (!clientKey || clientKey !== process.env.API_KEY) {
-    return res.status(403).json({ error: "Invalid API_KEY" });
+    return res.status(403).json({ error: "invalid api key" });
   }
 
-  // Generate temporary token
-  temporaryToken = generateToken();
-
-  // Return token to the client
-  res.json({ token: temporaryToken });
-});
-
-// Endpoint: /text-get
-app.get("/text-get", (req, res) => {
-  const clientToken = req.headers["x-api-token"];
-
-  if (!clientToken || clientToken !== temporaryToken) {
-    return res.status(403).json({ error: "Invalid or expired token" });
+  if (!resources[resourceName]) {
+    return res.status(404).json({ error: "resource not found" });
   }
 
-  // Clear the token immediately
-  temporaryToken = null;
+  const token = generateToken();
+  const expireTime = Date.now() + 60 * 1000; // 1 minute
 
-  // Return the text
-  res.send("print[[hi]]");
+  tokenStore[token] = {
+    resourceName,
+    expires: expireTime,
+  };
+
+  res.json({ token });
 });
+
+app.get("/text-get/:token", (req, res) => {
+  const { token } = req.params;
+  const entry = tokenStore[token];
+
+  if (!entry || entry.expires < Date.now()) {
+    return res.status(403).json({ error: "invalid or expired token" });
+  }
+
+  const resourceData = resources[entry.resourceName];
+
+  delete tokenStore[token];
+
+  res.json({ resource: resourceData });
+});
+
+setInterval(() => {
+  const now = Date.now();
+  for (const token in tokenStore) {
+    if (tokenStore[token].expires < now) {
+      delete tokenStore[token];
+    }
+  }
+}, 60 * 1000);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
