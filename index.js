@@ -39,6 +39,8 @@ app.post("/token/:resourceName", (req, res) => {
   res.json({ token });
 });
 
+const crypto = require("crypto");
+
 app.get("/text-get/:token", (req, res) => {
   const { token } = req.params;
   const entry = tokenStore[token];
@@ -49,9 +51,23 @@ app.get("/text-get/:token", (req, res) => {
 
   const resourceData = resources[entry.resourceName];
 
+  // 32-byte key from environment
+  const key = Buffer.from(process.env.AES_KEY, "hex");
+
+  // 16-byte IV for CBC
+  const iv = crypto.randomBytes(16);
+
+  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+
+  let encrypted = cipher.update(resourceData, "utf8", "base64");
+  encrypted += cipher.final("base64");
+
   delete tokenStore[token];
 
-  res.json({ resource: resourceData });
+  res.json({
+    encrypted: encrypted,
+    iv: iv.toString("base64"),
+  });
 });
 
 setInterval(() => {
