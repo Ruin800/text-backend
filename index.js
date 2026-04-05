@@ -39,8 +39,6 @@ app.post("/token/:resourceName", (req, res) => {
   res.json({ token });
 });
 
-const crypto = require("crypto");
-
 app.get("/text-get/:token", (req, res) => {
   const { token } = req.params;
   const entry = tokenStore[token];
