@@ -57,14 +57,18 @@ app.get("/text-get/:token", (req, res) => {
 
   const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
 
-  let encrypted = cipher.update(resourceData, "utf8", "base64");
-  encrypted += cipher.final("base64");
+  // Encrypt as raw bytes
+  const encryptedBuffer = Buffer.concat([
+    cipher.update(Buffer.from(resourceData, "utf8")),
+    cipher.final(),
+  ]);
 
   delete tokenStore[token];
 
+  // Return IV and encrypted as raw bytes (hex or base64 if needed for transport)
   res.json({
-    encrypted: encrypted,
-    iv: iv.toString("base64"),
+    encrypted: Array.from(encryptedBuffer), // array of byte values
+    iv: Array.from(iv),
   });
 });
 
