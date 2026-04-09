@@ -22,7 +22,7 @@ app.post("/token/:resourceName", (req, res) => {
   const clientKey = req.body.api_key;
   const resourceName = req.params.resourceName;
 
-  if (!clientKey || clientKey !== process.env.api_key) {
+  if (!clientKey || clientKey !== process.env.API_KEY) {
     return res.status(403).json({ error: "invalid api key" });
   }
 
