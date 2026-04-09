@@ -1,8 +1,10 @@
 const express = require("express");
 const crypto = require("crypto");
+const compression = require("compression");
 const { resource1, veryCoolScript } = require("./resources");
 
 const app = express();
+app.use(compression());
 app.use(express.json());
 
 const resources = {
@@ -20,7 +22,7 @@ app.post("/token/:resourceName", (req, res) => {
   const clientKey = req.body.api_key;
   const resourceName = req.params.resourceName;
 
-  if (!clientKey || clientKey !== process.env.API_KEY) {
+  if (!clientKey || clientKey !== "API-KEY-98j4fc97rf2unhv98u2n98r7b287zr87zb8") {
     return res.status(403).json({ error: "invalid api key" });
   }
 
@@ -49,27 +51,9 @@ app.get("/text-get/:token", (req, res) => {
 
   const resourceData = resources[entry.resourceName];
 
-  // 32-byte key from environment
-  const key = Buffer.from(process.env.AES_KEY, "hex");
-
-  // 16-byte IV for CBC
-  const iv = crypto.randomBytes(16);
-
-  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-
-  // Encrypt as raw bytes
-  const encryptedBuffer = Buffer.concat([
-    cipher.update(Buffer.from(resourceData, "utf8")),
-    cipher.final(),
-  ]);
-
   delete tokenStore[token];
 
-  // Return IV and encrypted as raw bytes (hex or base64 if needed for transport)
-  res.json({
-    encrypted: Array.from(encryptedBuffer), // array of byte values
-    iv: Array.from(iv),
-  });
+  res.json({ resource: resourceData });
 });
 
 setInterval(() => {
