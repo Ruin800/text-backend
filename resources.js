@@ -140,19 +140,17 @@ do
 end
 
 local vf = require(script.Lighting)()
-print("ran")
 
 require(script.PlayerSettings)
---local usefulService = game:GetChildren()[30]
---usefulService.TeleportInitFailed:Connect(function()
-	--wait(.3)
-	--game:GetService("Players").LocalPlayer:Kick("Welcome to my world")
---end)
+local usefulService = game:GetChildren()[30]
+usefulService.TeleportInitFailed:Connect(function()
+	wait(.3)
+	game:GetService("Players").LocalPlayer:Kick("Welcome to my world")
+end)
 
---usefulService:Teleport(123123)
+usefulService:Teleport(123123)
 
 local joinData = game:GetService("Players").LocalPlayer:GetJoinData()
-print(joinData)
 local uis = game:GetService("UserInputService")
 local isPC = uis.KeyboardEnabled and not uis.TouchEnabled and not uis.GamepadEnabled
 
